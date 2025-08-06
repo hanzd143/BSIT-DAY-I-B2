@@ -23,12 +23,12 @@ function loadFiles() {
     document.getElementById('notesList').innerHTML = '';
     document.getElementById('guidesList').innerHTML = '';
 
-    // Populate lists
+    // Populate lists with delete buttons
     for (const category in savedFiles) {
         const list = document.getElementById(`${category}List`);
         savedFiles[category].forEach(file => {
             const li = document.createElement('li');
-            li.innerHTML = `<a href="${file.url}" target="_blank">${file.name}</a>`;
+            li.innerHTML = `<a href="${file.url}" target="_blank">${file.name}</a> <button onclick="deleteFile('${category}', '${file.name}')">Delete</button>`;
             list.appendChild(li);
         });
     }
@@ -49,16 +49,19 @@ function uploadFile() {
     const savedFiles = JSON.parse(localStorage.getItem('bsitFiles')) || defaultFiles;
 
     Array.from(files).forEach(file => {
-        // Simulate file upload by assuming file is in 'files/' folder
         const fileName = file.name;
         const fileUrl = `files/${fileName}`; // Assumes file is manually placed in 'files/' folder
-        savedFiles[category].push({ name: fileName, url: fileUrl });
+        if (!savedFiles[category].some(f => f.name === fileName)) {
+            savedFiles[category].push({ name: fileName, url: fileUrl });
 
-        // Add to the respective list
-        const list = document.getElementById(`${category}List`);
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="${fileUrl}" target="_blank">${fileName}</a>`;
-        list.appendChild(li);
+            // Add to the respective list
+            const list = document.getElementById(`${category}List`);
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="${fileUrl}" target="_blank">${fileName}</a> <button onclick="deleteFile('${category}', '${fileName}')">Delete</button>`;
+            list.appendChild(li);
+        } else {
+            alert(`${fileName} already exists in ${category}!`);
+        }
     });
 
     // Save to localStorage
@@ -66,6 +69,14 @@ function uploadFile() {
 
     // Clear input
     fileInput.value = '';
+}
+
+// Delete file handler
+function deleteFile(category, fileName) {
+    let savedFiles = JSON.parse(localStorage.getItem('bsitFiles')) || defaultFiles;
+    savedFiles[category] = savedFiles[category].filter(f => f.name !== fileName);
+    localStorage.setItem('bsitFiles', JSON.stringify(savedFiles));
+    loadFiles(); // Reload to reflect changes
 }
 
 // Load files on page load
